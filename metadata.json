@@ -1,0 +1,8 @@
+{
+  "name": "DOMINUS | Formulario de Candidatura",
+  "description": "Formulário de Candidatura com fluxo condicional dinâmico para recrutamento de Copywriters, Editores de Vídeo, Gestores de Tráfego e Gestores de Projetos DOMINUS.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
