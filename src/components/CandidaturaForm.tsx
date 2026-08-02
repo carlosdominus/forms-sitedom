@@ -121,14 +121,16 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
     }
   }, [step, answers, submitted]);
 
-  // Scroll to page top when step changes so header and title are visible
+  // Scroll to form container when step changes so it aligns with top of form box
   useEffect(() => {
     if (isInitialMount.current) {
       isInitialMount.current = false;
       return;
     }
     requestAnimationFrame(() => {
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      if (formContainerRef.current) {
+        formContainerRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
     });
   }, [step]);
 
@@ -365,7 +367,6 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
   const handleNext = () => {
     if (validateCurrentStep()) {
       setStep((prev) => (prev < 5 ? prev + 1 : prev));
-      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
@@ -382,7 +383,6 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
     setValidationError(null);
     if (step > 1) {
       setStep(step - 1);
-      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
@@ -536,7 +536,7 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
           value={(value as string) || ""}
           onChange={(e) => updateTrackAnswer(q.id, e.target.value)}
           placeholder={q.placeholder || "Sua resposta detalhada..."}
-          className="w-full bg-[#121319] border border-zinc-800/90 focus:border-[#41F20A] rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-[#41F20A] transition resize-y leading-relaxed"
+          className="w-full bg-[#121319] border border-zinc-800/90 focus:border-[#41F20A] rounded-xl px-4 py-3 text-[16px] sm:text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-[#41F20A] transition resize-y leading-relaxed"
         />
       );
     }
@@ -552,7 +552,7 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
             value={(value as string) || ""}
             onChange={(e) => updateTrackAnswer(q.id, e.target.value)}
             placeholder={q.placeholder || "https://drive.google.com/..."}
-            className="w-full bg-[#121319] border border-zinc-800/90 focus:border-[#41F20A] rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-[#41F20A] transition"
+            className="w-full bg-[#121319] border border-zinc-800/90 focus:border-[#41F20A] rounded-xl pl-10 pr-4 py-3 text-[16px] sm:text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-[#41F20A] transition"
           />
         </div>
       );
@@ -564,7 +564,7 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
         value={(value as string) || ""}
         onChange={(e) => updateTrackAnswer(q.id, e.target.value)}
         placeholder={q.placeholder || "Sua resposta..."}
-        className="w-full bg-[#121319] border border-zinc-800/90 focus:border-[#41F20A] rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-[#41F20A] transition"
+        className="w-full bg-[#121319] border border-zinc-800/90 focus:border-[#41F20A] rounded-xl px-4 py-3 text-[16px] sm:text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-[#41F20A] transition"
       />
     );
   };
@@ -735,7 +735,7 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
                       value={answers.nome}
                       onChange={(e) => updateAnswer("nome", e.target.value)}
                       placeholder="Ex: João Silva"
-                      className="w-full bg-[#121319] border border-zinc-800/90 focus:border-[#41F20A] rounded-2xl px-4 py-3.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-[#41F20A] transition"
+                      className="w-full bg-[#121319] border border-zinc-800/90 focus:border-[#41F20A] rounded-2xl px-4 py-3.5 text-[16px] sm:text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-[#41F20A] transition"
                     />
                   </div>
 
@@ -752,7 +752,7 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
                       value={answers.instagram}
                       onChange={(e) => updateAnswer("instagram", e.target.value)}
                       placeholder="@seu.perfil"
-                      className="w-full bg-[#121319] border border-zinc-800/90 focus:border-[#41F20A] rounded-2xl px-4 py-3.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-[#41F20A] transition"
+                      className="w-full bg-[#121319] border border-zinc-800/90 focus:border-[#41F20A] rounded-2xl px-4 py-3.5 text-[16px] sm:text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-[#41F20A] transition"
                     />
                   </div>
 
@@ -769,7 +769,7 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
                       value={answers.whatsapp}
                       onChange={(e) => updateAnswer("whatsapp", maskPhone(e.target.value))}
                       placeholder="(11) 99999-9999"
-                      className="w-full bg-[#121319] border border-zinc-800/90 focus:border-[#41F20A] rounded-2xl px-4 py-3.5 text-sm font-mono text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-[#41F20A] transition"
+                      className="w-full bg-[#121319] border border-zinc-800/90 focus:border-[#41F20A] rounded-2xl px-4 py-3.5 text-[16px] sm:text-sm font-mono text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-[#41F20A] transition"
                     />
                   </div>
                 </div>
@@ -983,7 +983,7 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
                               value={(answers.trackAnswers[q.conditionalSubQuestion.id] as string) || ""}
                               onChange={(e) => updateTrackAnswer(q.conditionalSubQuestion!.id, e.target.value)}
                               placeholder={q.conditionalSubQuestion.placeholder || "Detalhe aqui..."}
-                              className="w-full bg-[#08090d] border border-zinc-800 focus:border-[#41F20A] rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-zinc-600 focus:outline-none"
+                              className="w-full bg-[#08090d] border border-zinc-800 focus:border-[#41F20A] rounded-xl px-3.5 py-2.5 text-[16px] sm:text-xs text-white placeholder-zinc-600 focus:outline-none"
                             />
                           </div>
                         )}
@@ -1093,7 +1093,7 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
                       value={answers.motivoSaida}
                       onChange={(e) => updateAnswer("motivoSaida", e.target.value)}
                       placeholder="Explique os motivos da mudança de projeto..."
-                      className="w-full bg-[#121319] border border-zinc-800/90 focus:border-[#41F20A] rounded-xl px-4 py-2.5 text-sm text-white placeholder-zinc-600 focus:outline-none"
+                      className="w-full bg-[#121319] border border-zinc-800/90 focus:border-[#41F20A] rounded-xl px-4 py-2.5 text-[16px] sm:text-sm text-white placeholder-zinc-600 focus:outline-none"
                     />
                   </div>
 
@@ -1130,7 +1130,7 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
                       value={answers.comentarioFinaisDeSemana}
                       onChange={(e) => updateAnswer("comentarioFinaisDeSemana", e.target.value)}
                       placeholder="Ex: Disponível para plantões de emergência em escala..."
-                      className="w-full bg-[#121319] border border-zinc-800/90 focus:border-[#41F20A] rounded-xl px-4 py-2.5 text-xs text-white placeholder-zinc-600 focus:outline-none"
+                      className="w-full bg-[#121319] border border-zinc-800/90 focus:border-[#41F20A] rounded-xl px-4 py-2.5 text-[16px] sm:text-xs text-white placeholder-zinc-600 focus:outline-none"
                     />
                   </div>
 
@@ -1168,7 +1168,7 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
                             value={answers.detalheSeisDigitos}
                             onChange={(e) => updateAnswer("detalheSeisDigitos", e.target.value)}
                             placeholder="Detalhamento do projeto e faturamento..."
-                            className="w-full bg-[#08090d] border border-zinc-800 focus:border-[#41F20A] rounded-xl px-3.5 py-2 text-xs text-white placeholder-zinc-600 focus:outline-none"
+                            className="w-full bg-[#08090d] border border-zinc-800 focus:border-[#41F20A] rounded-xl px-3.5 py-2 text-[16px] sm:text-xs text-white placeholder-zinc-600 focus:outline-none"
                           />
                         </div>
                       )}
@@ -1189,7 +1189,7 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
                         value={answers.pretensaoSalarial}
                         onChange={(e) => updateAnswer("pretensaoSalarial", e.target.value)}
                         placeholder="R$"
-                        className="w-full bg-[#121319] border border-zinc-800/90 focus:border-[#41F20A] rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-600 focus:outline-none"
+                        className="w-full bg-[#121319] border border-zinc-800/90 focus:border-[#41F20A] rounded-xl px-4 py-3 text-[16px] sm:text-sm text-white placeholder-zinc-600 focus:outline-none"
                       />
                     </div>
                   ) : (
@@ -1244,7 +1244,7 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
                       value={answers.testeAtencaoResposta}
                       onChange={(e) => updateAnswer("testeAtencaoResposta", e.target.value)}
                       placeholder="Escreva a palavra ao contrário..."
-                      className="w-full bg-[#08090d] border border-amber-500/50 focus:border-[#41F20A] rounded-xl px-4 py-3 text-sm font-mono text-[#41F20A] placeholder-zinc-600 focus:outline-none uppercase"
+                      className="w-full bg-[#08090d] border border-amber-500/50 focus:border-[#41F20A] rounded-xl px-4 py-3 text-[16px] sm:text-sm font-mono text-[#41F20A] placeholder-zinc-600 focus:outline-none uppercase"
                     />
                   </div>
 
@@ -1258,7 +1258,7 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
                       value={answers.destaqueImportante}
                       onChange={(e) => updateAnswer("destaqueImportante", e.target.value)}
                       placeholder="Sua observação final..."
-                      className="w-full bg-[#121319] border border-zinc-800/90 focus:border-[#41F20A] rounded-xl px-4 py-2.5 text-xs text-white placeholder-zinc-600 focus:outline-none"
+                      className="w-full bg-[#121319] border border-zinc-800/90 focus:border-[#41F20A] rounded-xl px-4 py-2.5 text-[16px] sm:text-xs text-white placeholder-zinc-600 focus:outline-none"
                     />
                   </div>
 
@@ -1277,7 +1277,7 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
                         value={answers.idade}
                         onChange={(e) => updateAnswer("idade", e.target.value ? Number(e.target.value) : "")}
                         placeholder="Ex: 25"
-                        className="w-full bg-[#121319] border border-zinc-800/90 focus:border-[#41F20A] rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-600 focus:outline-none font-mono"
+                        className="w-full bg-[#121319] border border-zinc-800/90 focus:border-[#41F20A] rounded-xl px-4 py-3 text-[16px] sm:text-sm text-white placeholder-zinc-600 focus:outline-none font-mono"
                       />
                     </div>
 
@@ -1289,7 +1289,7 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
                         id="field-temCnpj"
                         value={answers.temCnpj}
                         onChange={(e) => updateAnswer("temCnpj", e.target.value)}
-                        className="w-full bg-[#121319] border border-zinc-800/90 focus:border-[#41F20A] rounded-xl px-4 py-3 text-xs text-white focus:outline-none font-mono"
+                        className="w-full bg-[#121319] border border-zinc-800/90 focus:border-[#41F20A] rounded-xl px-4 py-3 text-[16px] sm:text-xs text-white focus:outline-none font-mono"
                       >
                         <option value="">Selecione...</option>
                         <option value="Sim">Sim</option>
@@ -1304,27 +1304,14 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
             )}
 
             {/* Bottom Navigation CTA Bar */}
-            <div className="pt-8 mt-8 border-t border-zinc-900 flex items-center justify-between gap-4">
-              {step > 1 ? (
-                <button
-                  type="button"
-                  onClick={handleBack}
-                  className="px-5 py-3 rounded-2xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs font-mono text-zinc-400 hover:text-white transition flex items-center gap-1.5"
-                >
-                  <ChevronLeft size={16} />
-                  <span>Anterior</span>
-                </button>
-              ) : (
-                <div />
-              )}
-
+            <div className="pt-8 mt-8 border-t border-zinc-900 flex flex-col items-center justify-center gap-3 text-center">
               {step < 5 ? (
                 <LiquidMetalButton
                   type="button"
                   label="PRÓXIMA ETAPA"
                   icon={<ArrowRight size={14} className="text-[#41F20A]" />}
                   onClick={handleNext}
-                  width={220}
+                  width={280}
                 />
               ) : (
                 <LiquidMetalButton
@@ -1338,8 +1325,19 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
                     )
                   }
                   onClick={handleSubmit}
-                  width={260}
+                  width={280}
                 />
+              )}
+
+              {step > 1 && (
+                <button
+                  type="button"
+                  onClick={handleBack}
+                  className="px-5 py-2.5 rounded-xl bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-800 text-xs font-mono text-zinc-400 hover:text-white transition flex items-center justify-center gap-1.5"
+                >
+                  <ChevronLeft size={16} />
+                  <span>Anterior</span>
+                </button>
               )}
             </div>
 
