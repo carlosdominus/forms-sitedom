@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { 
   User, 
   Instagram, 
@@ -9,7 +9,6 @@ import {
   ArrowRight, 
   Sparkles, 
   Loader2, 
-  AlertCircle, 
   HelpCircle,
   Link as LinkIcon,
   Check,
@@ -52,6 +51,10 @@ interface CandidaturaFormProps {
 }
 
 export default function CandidaturaForm({ onOpenRecruiterDashboard }: CandidaturaFormProps) {
+  // Container ref for smooth scrolling to top on step changes
+  const formContainerRef = useRef<HTMLDivElement>(null);
+  const isInitialMount = useRef<boolean>(true);
+
   // Current screen step (1 to 5)
   const [step, setStep] = useState<number>(1);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -87,7 +90,7 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
     destaqueImportante: "",
     idade: "",
     temCnpj: "",
-    autorizaLgpd: false,
+    autorizaLgpd: true,
   });
 
   // Load URL Preselection or Saved Draft on Mount
@@ -117,6 +120,17 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
       saveFormDraft({ step, answers });
     }
   }, [step, answers, submitted]);
+
+  // Scroll to page top when step changes so header and title are visible
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  }, [step]);
 
   // Derived Active Track Config
   const activeTrack = useMemo(() => {
@@ -182,20 +196,24 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
 
   // Validation Check per Step
   const validateCurrentStep = (): boolean => {
-    setValidationError(null);
-
     // Screen 1: Bloco 0 (Abertura)
     if (step === 1) {
       if (!answers.nome.trim()) {
-        setValidationError("Por favor, informe seu nome completo.");
+        const el = document.getElementById("field-nome");
+        el?.focus();
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
         return false;
       }
       if (!answers.instagram.trim()) {
-        setValidationError("Por favor, informe o @ do seu Instagram.");
+        const el = document.getElementById("field-instagram");
+        el?.focus();
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
         return false;
       }
       if (!answers.whatsapp.trim() || answers.whatsapp.replace(/\D/g, "").length < 10) {
-        setValidationError("Por favor, informe um número de WhatsApp válido com DDD.");
+        const el = document.getElementById("field-whatsapp");
+        el?.focus();
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
         return false;
       }
       return true;
@@ -204,27 +222,26 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
     // Screen 2: Bloco 1 (Roteamento)
     if (step === 2) {
       if (!answers.vaga) {
-        setValidationError("Selecione a vaga para a qual deseja se candidatar.");
+        document.getElementById("field-vaga")?.scrollIntoView({ behavior: "smooth", block: "center" });
         return false;
       }
 
       if (answers.vaga === "Copywriter" && !answers.copywriterTipo) {
-        setValidationError("Selecione se seu foco principal é Criativos ou VSL.");
+        document.getElementById("field-subvaga")?.scrollIntoView({ behavior: "smooth", block: "center" });
         return false;
       }
 
       if (answers.vaga === "Editor de vídeo" && !answers.editorTipo) {
-        setValidationError("Selecione se seu foco principal é Criativos ou VSL.");
+        document.getElementById("field-subvaga")?.scrollIntoView({ behavior: "smooth", block: "center" });
         return false;
       }
 
       if (answers.vaga === "Gestor de tráfego" && !answers.trafegoNivel) {
-        setValidationError("Selecione a sua experiência com gestão de verba em tráfego.");
+        document.getElementById("field-subvaga")?.scrollIntoView({ behavior: "smooth", block: "center" });
         return false;
       }
 
       if (!answers.trilhaId) {
-        setValidationError("Erro ao direcionar para a trilha. Escolha as opções da vaga novamente.");
         return false;
       }
 
@@ -233,16 +250,18 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
 
     // Screen 3: Bloco 2 (Trilha Específica)
     if (step === 3) {
-      if (!activeTrack) {
-        setValidationError("Trilha não identificada. Volte à etapa anterior.");
-        return false;
-      }
+      if (!activeTrack) return false;
 
       for (const q of activeTrack.questions) {
         if (q.required) {
           const val = answers.trackAnswers[q.id];
           if (!val || (Array.isArray(val) && val.length === 0) || (typeof val === "string" && !val.trim())) {
-            setValidationError(`Por favor, responda à pergunta: "${q.label}"`);
+            const el = document.getElementById(`q-container-${q.id}`);
+            if (el) {
+              el.scrollIntoView({ behavior: "smooth", block: "center" });
+              const inputEl = el.querySelector("input, textarea, select") as HTMLElement;
+              if (inputEl) inputEl.focus();
+            }
             return false;
           }
         }
@@ -253,7 +272,12 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
           if (mainVal === q.conditionalSubQuestion.triggerValue) {
             const subVal = answers.trackAnswers[q.conditionalSubQuestion.id];
             if (!subVal || (typeof subVal === "string" && !subVal.trim())) {
-              setValidationError(`Por favor, responda ao detalhe: "${q.conditionalSubQuestion.label}"`);
+              const el = document.getElementById(`q-subcontainer-${q.conditionalSubQuestion.id}`);
+              if (el) {
+                el.scrollIntoView({ behavior: "smooth", block: "center" });
+                const inputEl = el.querySelector("textarea, input") as HTMLElement;
+                if (inputEl) inputEl.focus();
+              }
               return false;
             }
           }
@@ -266,41 +290,47 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
     // Screen 4: Bloco 3 (Disponibilidade e Dinheiro)
     if (step === 4) {
       if (!answers.fullTimeExclusivo) {
-        setValidationError("Informe se possui disponibilidade para atuar FULL TIME e exclusivo.");
+        document.getElementById("field-fullTimeExclusivo")?.scrollIntoView({ behavior: "smooth", block: "center" });
         return false;
       }
       if (!answers.trabalhandoAtualmente) {
-        setValidationError("Informe se está trabalhando atualmente.");
+        document.getElementById("field-trabalhandoAtualmente")?.scrollIntoView({ behavior: "smooth", block: "center" });
         return false;
       }
       if (!answers.tempoInicio) {
-        setValidationError("Informe em quanto tempo consegue iniciar.");
+        document.getElementById("field-tempoInicio")?.scrollIntoView({ behavior: "smooth", block: "center" });
         return false;
       }
       if (!answers.motivoSaida.trim()) {
-        setValidationError("Informe o motivo pelo qual deixou seu último trabalho ou pretende deixar o atual.");
+        const el = document.getElementById("field-motivoSaida");
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
+        el?.focus();
         return false;
       }
       if (!answers.flexibilidadeHorarios) {
-        setValidationError("Informe sobre sua flexibilidade de horários.");
+        document.getElementById("field-flexibilidadeHorarios")?.scrollIntoView({ behavior: "smooth", block: "center" });
         return false;
       }
 
       // 6 digits check required unless on T6 where already asked in T6.3
       if (answers.trilhaId !== "T6") {
         if (!answers.escalouSeisDigitos) {
-          setValidationError("Informe se já fez parte de algum projeto que escalou múltiplos 6 dígitos.");
+          document.getElementById("field-escalouSeisDigitos")?.scrollIntoView({ behavior: "smooth", block: "center" });
           return false;
         }
         if (answers.escalouSeisDigitos === "Sim" && !answers.detalheSeisDigitos?.trim()) {
-          setValidationError("Detalia o projeto, nicho e seu papel na escala de 6 dígitos.");
+          const el = document.getElementById("field-detalheSeisDigitos");
+          el?.scrollIntoView({ behavior: "smooth", block: "center" });
+          el?.focus();
           return false;
         }
       }
 
       // Salary expectation required unless on T5 where fixed 2k is already set
       if (answers.trilhaId !== "T5" && !answers.pretensaoSalarial?.trim()) {
-        setValidationError("Informe a sua pretensão salarial.");
+        const el = document.getElementById("field-pretensaoSalarial");
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
+        el?.focus();
         return false;
       }
 
@@ -309,24 +339,20 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
 
     // Screen 5: Bloco 4 (Fechamento)
     if (step === 5) {
-      if (!answers.comoConheceu) {
-        setValidationError("Informe como você conheceu essa vaga.");
-        return false;
-      }
       if (!answers.testeAtencaoResposta.trim()) {
-        setValidationError("Responda ao teste de atenção.");
+        const el = document.getElementById("field-testeAtencao");
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
+        el?.focus();
         return false;
       }
       if (!answers.idade || Number(answers.idade) <= 0) {
-        setValidationError("Informe a sua idade em números.");
+        const el = document.getElementById("field-idade");
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
+        el?.focus();
         return false;
       }
       if (!answers.temCnpj) {
-        setValidationError("Informe se possui CNPJ.");
-        return false;
-      }
-      if (!answers.autorizaLgpd) {
-        setValidationError("Você precisa autorizar o armazenamento dos dados para fins de recrutamento.");
+        document.getElementById("field-temCnpj")?.scrollIntoView({ behavior: "smooth", block: "center" });
         return false;
       }
 
@@ -338,10 +364,8 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
 
   const handleNext = () => {
     if (validateCurrentStep()) {
-      if (step < 5) {
-        setStep(step + 1);
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }
+      setStep((prev) => (prev < 5 ? prev + 1 : prev));
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
@@ -430,7 +454,7 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
       destaqueImportante: "",
       idade: "",
       temCnpj: "",
-      autorizaLgpd: false,
+      autorizaLgpd: true,
     });
   };
 
@@ -490,7 +514,7 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
               >
                 <span className="text-xs sm:text-sm font-medium pr-2">{opt}</span>
                 <div
-                  className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 transition-all ${
+                  className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 transition-all ${
                     isChecked
                       ? "bg-[#41F20A] border-[#41F20A] text-black"
                       : "border-zinc-700 bg-zinc-950/80"
@@ -546,7 +570,7 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto my-6 px-3 sm:px-6 relative z-10">
+    <div ref={formContainerRef} className="w-full max-w-3xl mx-auto my-6 px-3 sm:px-6 relative z-10">
       
       {/* Container Glass Box */}
       <div className="relative bg-[#08090d]/85 backdrop-blur-2xl border border-white/10 rounded-2xl sm:rounded-[2.5rem] p-5 sm:p-8 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,0.85),inset_0_1px_1px_rgba(255,255,255,0.15)] flex flex-col justify-between overflow-hidden">
@@ -600,14 +624,6 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
 
               <div className="w-10 h-10" />
             </div>
-
-            {/* Validation Error Banner */}
-            {validationError && (
-              <div className="p-3.5 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs sm:text-sm flex items-center gap-2.5 animate-in fade-in">
-                <AlertCircle size={18} className="shrink-0 text-red-400" />
-                <span>{validationError}</span>
-              </div>
-            )}
           </div>
         )}
 
@@ -690,6 +706,7 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
                       1. Nome completo *
                     </label>
                     <input
+                      id="field-nome"
                       type="text"
                       required
                       value={answers.nome}
@@ -706,6 +723,7 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
                       2. Qual o @ do seu Instagram? *
                     </label>
                     <input
+                      id="field-instagram"
                       type="text"
                       required
                       value={answers.instagram}
@@ -722,6 +740,7 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
                       3. WhatsApp (com DDD) *
                     </label>
                     <input
+                      id="field-whatsapp"
                       type="tel"
                       required
                       value={answers.whatsapp}
@@ -749,7 +768,7 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
                 </div>
 
                 {/* 1.1 Vagas Principais */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                <div id="field-vaga" className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                   {(["Copywriter", "Editor de vídeo", "Gestor de tráfego", "Gestor de projetos"] as RoleCategory[]).map((vaga) => {
                     const isSelected = answers.vaga === vaga;
                     return (
@@ -785,7 +804,7 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
 
                 {/* 1.2 CONDICIONAL: Copywriter */}
                 {answers.vaga === "Copywriter" && (
-                  <div className="p-5 rounded-2xl bg-[#0e1017] border border-zinc-800 space-y-3 animate-in fade-in">
+                  <div id="field-subvaga" className="p-5 rounded-2xl bg-[#0e1017] border border-zinc-800 space-y-3 animate-in fade-in">
                     <label className="text-xs font-mono text-zinc-300 font-semibold uppercase tracking-wider block">
                       Qual é o seu foco principal? *
                     </label>
@@ -817,7 +836,7 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
 
                 {/* 1.3 CONDICIONAL: Editor de vídeo */}
                 {answers.vaga === "Editor de vídeo" && (
-                  <div className="p-5 rounded-2xl bg-[#0e1017] border border-zinc-800 space-y-3 animate-in fade-in">
+                  <div id="field-subvaga" className="p-5 rounded-2xl bg-[#0e1017] border border-zinc-800 space-y-3 animate-in fade-in">
                     <label className="text-xs font-mono text-zinc-300 font-semibold uppercase tracking-wider block">
                       Qual é o seu foco principal? *
                     </label>
@@ -849,7 +868,7 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
 
                 {/* 1.4 CONDICIONAL: Gestor de tráfego */}
                 {answers.vaga === "Gestor de tráfego" && (
-                  <div className="p-5 rounded-2xl bg-[#0e1017] border border-zinc-800 space-y-4 animate-in fade-in">
+                  <div id="field-subvaga" className="p-5 rounded-2xl bg-[#0e1017] border border-zinc-800 space-y-4 animate-in fade-in">
                     <label className="text-xs font-mono text-zinc-300 font-semibold uppercase tracking-wider block">
                       Qual é o seu nível de experiência atual? *
                     </label>
@@ -915,7 +934,7 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
                       answers.trackAnswers[q.id] === q.conditionalSubQuestion.triggerValue;
 
                     return (
-                      <div key={q.id} className="space-y-2 pt-2 border-b border-zinc-900 pb-5">
+                      <div key={q.id} id={`q-container-${q.id}`} className="space-y-2 pt-2 border-b border-zinc-900 pb-5">
                         <label className="text-xs sm:text-sm font-mono text-zinc-200 font-semibold block leading-snug">
                           <span className="text-[#41F20A] font-bold mr-1.5">{idx + 1}.</span>
                           {q.label}
@@ -932,7 +951,7 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
 
                         {/* Render Conditional Sub-Question (e.g., 6a, 8a, 3a) */}
                         {isConditionalActive && q.conditionalSubQuestion && (
-                          <div className="mt-3 p-4 rounded-2xl bg-[#12141d] border border-[#41F20A]/30 space-y-2 animate-in fade-in">
+                          <div id={`q-subcontainer-${q.conditionalSubQuestion.id}`} className="mt-3 p-4 rounded-2xl bg-[#12141d] border border-[#41F20A]/30 space-y-2 animate-in fade-in">
                             <label className="text-xs font-mono text-[#41F20A] font-semibold block">
                               • {q.conditionalSubQuestion.label} *
                             </label>
@@ -972,7 +991,7 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
                 <div className="space-y-5">
                   
                   {/* 3.1 Full Time Exclusivo */}
-                  <div className="space-y-2">
+                  <div id="field-fullTimeExclusivo" className="space-y-2">
                     <label className="text-xs sm:text-sm font-mono text-zinc-200 font-semibold block">
                       3.1 Tem disponibilidade para exercer sua função FULL TIME e de forma exclusiva? *
                     </label>
@@ -995,7 +1014,7 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
                   </div>
 
                   {/* 3.2 Trabalhando Atualmente */}
-                  <div className="space-y-2">
+                  <div id="field-trabalhandoAtualmente" className="space-y-2">
                     <label className="text-xs sm:text-sm font-mono text-zinc-200 font-semibold block">
                       3.2 Você está trabalhando atualmente? *
                     </label>
@@ -1018,7 +1037,7 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
                   </div>
 
                   {/* 3.3 Tempo para Início */}
-                  <div className="space-y-2">
+                  <div id="field-tempoInicio" className="space-y-2">
                     <label className="text-xs sm:text-sm font-mono text-zinc-200 font-semibold block">
                       3.3 Em quanto tempo você consegue começar? *
                     </label>
@@ -1046,6 +1065,7 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
                       3.4 Por qual motivo você deixou seu último trabalho, ou pretende deixar o atual? *
                     </label>
                     <textarea
+                      id="field-motivoSaida"
                       rows={2}
                       value={answers.motivoSaida}
                       onChange={(e) => updateAnswer("motivoSaida", e.target.value)}
@@ -1055,7 +1075,7 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
                   </div>
 
                   {/* 3.5 Flexibilidade Horários */}
-                  <div className="space-y-2">
+                  <div id="field-flexibilidadeHorarios" className="space-y-2">
                     <label className="text-xs sm:text-sm font-mono text-zinc-200 font-semibold block">
                       3.5 Teria flexibilidade para atender demandas em qualquer horário do day, inclusive aos finais de semana? *
                     </label>
@@ -1093,7 +1113,7 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
 
                   {/* 3.7 Escalou 6 Digitos (OCULTAR na T6 pois já foi perguntado em T6.3) */}
                   {answers.trilhaId !== "T6" && (
-                    <div className="space-y-2 pt-2 border-t border-zinc-900">
+                    <div id="field-escalouSeisDigitos" className="space-y-2 pt-2 border-t border-zinc-900">
                       <label className="text-xs sm:text-sm font-mono text-zinc-200 font-semibold block">
                         3.7 Você já fez parte de algum projeto que escalou múltiplos 6 dígitos? *
                       </label>
@@ -1120,6 +1140,7 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
                             3.7a Qual projeto, qual nicho e qual era o seu papel nele? *
                           </label>
                           <textarea
+                            id="field-detalheSeisDigitos"
                             rows={2}
                             value={answers.detalheSeisDigitos}
                             onChange={(e) => updateAnswer("detalheSeisDigitos", e.target.value)}
@@ -1139,6 +1160,7 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
                         3.8 Qual sua pretensão salarial? *
                       </label>
                       <input
+                        id="field-pretensaoSalarial"
                         type="text"
                         required
                         value={answers.pretensaoSalarial}
@@ -1177,34 +1199,11 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
 
                 <div className="space-y-5">
                   
-                  {/* 4.1 Como Conheceu */}
-                  <div className="space-y-2">
-                    <label className="text-xs sm:text-sm font-mono text-zinc-200 font-semibold block">
-                      4.1 Como você conheceu essa vaga? *
-                    </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {(["Instagram", "Indicação", "Grupo/comunidade", "Anúncio", "Outro"] as const).map((opt) => (
-                        <button
-                          key={opt}
-                          type="button"
-                          onClick={() => updateAnswer("comoConheceu", opt)}
-                          className={`p-3 rounded-xl border text-center text-xs font-semibold transition ${
-                            answers.comoConheceu === opt
-                              ? "bg-[#41F20A]/15 border-[#41F20A] text-[#41F20A]"
-                              : "bg-[#121319] border-zinc-800 text-zinc-400 hover:text-white"
-                          }`}
-                        >
-                          {opt}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* 4.2 TESTE DE ATENÇÃO */}
+                  {/* TESTE DE ATENÇÃO */}
                   <div className="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-3">
                     <div className="flex items-center gap-2 text-amber-400 font-mono font-bold text-xs uppercase tracking-wider">
                       <Lock size={16} />
-                      <span>4.2 TESTE DE ATENÇÃO OBRIGATÓRIO</span>
+                      <span>TESTE DE ATENÇÃO OBRIGATÓRIO</span>
                     </div>
                     
                     <p className="text-xs text-zinc-200 font-sans leading-relaxed">
@@ -1216,6 +1215,7 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
                     </p>
 
                     <input
+                      id="field-testeAtencao"
                       type="text"
                       required
                       value={answers.testeAtencaoResposta}
@@ -1225,10 +1225,10 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
                     />
                   </div>
 
-                  {/* 4.3 Destaque Opcional */}
+                  {/* Destaque Opcional */}
                   <div className="space-y-1.5">
                     <label className="text-xs font-mono text-zinc-400 font-medium block">
-                      4.3 Existe algo que não perguntamos e você acha importante destacar? (Opcional)
+                      Existe algo que não perguntamos e você acha importante destacar? (Opcional)
                     </label>
                     <textarea
                       rows={2}
@@ -1239,13 +1239,14 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
                     />
                   </div>
 
-                  {/* 4.4 Idade e 4.5 CNPJ */}
+                  {/* Idade e CNPJ */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                     <div className="space-y-1.5">
                       <label className="text-xs font-mono text-zinc-300 font-semibold uppercase tracking-wider block">
-                        4.4 Quantos anos você tem? *
+                        Quantos anos você tem? *
                       </label>
                       <input
+                        id="field-idade"
                         type="number"
                         min={14}
                         max={90}
@@ -1259,9 +1260,10 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
 
                     <div className="space-y-1.5">
                       <label className="text-xs font-mono text-zinc-300 font-semibold uppercase tracking-wider block">
-                        4.5 Tem CNPJ? *
+                        Tem CNPJ? *
                       </label>
                       <select
+                        id="field-temCnpj"
                         value={answers.temCnpj}
                         onChange={(e) => updateAnswer("temCnpj", e.target.value)}
                         className="w-full bg-[#121319] border border-zinc-800/90 focus:border-[#41F20A] rounded-xl px-4 py-3 text-xs text-white focus:outline-none font-mono"
@@ -1272,21 +1274,6 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
                         <option value="Estou em processo de abertura">Estou em processo de abertura</option>
                       </select>
                     </div>
-                  </div>
-
-                  {/* Autorização LGPD */}
-                  <div className="pt-4 border-t border-zinc-800/80">
-                    <label className="flex items-start gap-3 cursor-pointer group">
-                      <input
-                        type="checkbox"
-                        checked={answers.autorizaLgpd}
-                        onChange={(e) => updateAnswer("autorizaLgpd", e.target.checked)}
-                        className="mt-0.5 rounded border-zinc-700 bg-zinc-900 text-[#41F20A] focus:ring-[#41F20A] w-4 h-4"
-                      />
-                      <span className="text-xs text-zinc-400 group-hover:text-zinc-300 transition leading-relaxed">
-                        Autorizo o armazenamento dos meus dados pessoais e profissional para fins exclusivos de recrutamento e triagem na DOMINUS.
-                      </span>
-                    </label>
                   </div>
 
                 </div>
@@ -1310,6 +1297,7 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
 
               {step < 5 ? (
                 <LiquidMetalButton
+                  type="button"
                   label="PRÓXIMA ETAPA"
                   icon={<ArrowRight size={14} className="text-[#41F20A]" />}
                   onClick={handleNext}
@@ -1317,6 +1305,7 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
                 />
               ) : (
                 <LiquidMetalButton
+                  type="submit"
                   label={isSubmitting ? "ENVIANDO CANDIDATURA..." : "FINALIZAR E ENVIAR"}
                   icon={
                     isSubmitting ? (

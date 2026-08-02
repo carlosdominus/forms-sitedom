@@ -515,13 +515,6 @@ export const TRACKS: Record<TrackId, TrackConfig> = {
     testWord: "DISCIPLINA",
     questions: [
       {
-        id: "t6_q1",
-        label: "Há quanto tempo você gerencia campanhas de tráfego pago?",
-        type: "unica",
-        options: ["Menos de 1 ano", "1 a 2 anos", "2 a 4 anos", "Mais de 4 anos"],
-        required: true,
-      },
-      {
         id: "t6_q2",
         label: "Quais plataformas você domina?",
         type: "multipla",
