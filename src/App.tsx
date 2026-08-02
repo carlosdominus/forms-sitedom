@@ -48,7 +48,7 @@ export default function App() {
 
       {/* Header with DOMINUS Logo */}
       <header className="relative z-20 w-full pt-6 pb-4 px-4 sm:px-8 flex items-center justify-center max-w-6xl mx-auto">
-        <a href="/" className="inline-block transition-transform active:scale-95">
+        <a href="https://dominus.site/" className="inline-block transition-transform active:scale-95">
           <img 
             src="https://dominus.site/image/logo-extensa-branca.webp" 
             alt="DOMINUS"

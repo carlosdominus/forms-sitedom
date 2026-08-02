@@ -673,6 +673,29 @@ export default function CandidaturaForm({ onOpenRecruiterDashboard }: Candidatur
             </div>
 
             <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
+              <a 
+                href="https://dominus.site/" 
+                className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-[#121319] hover:bg-[#181922] border border-zinc-800 hover:border-[#41F20A]/50 text-xs sm:text-sm font-mono text-zinc-200 hover:text-white transition-all shadow-[0_4px_20px_rgba(0,0,0,0.5)] group"
+              >
+                <span>Voltar para dominus.site</span>
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="16" 
+                  height="16" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  className="lucide lucide-arrow-right text-[#41F20A] group-hover:translate-x-1 transition-transform" 
+                  aria-hidden="true"
+                >
+                  <path d="M5 12h14"></path>
+                  <path d="m12 5 7 7-7 7"></path>
+                </svg>
+              </a>
+
               <LiquidMetalButton
                 label="NOVA CANDIDATURA"
                 icon={<RotateCcw size={14} className="text-[#41F20A]" />}
